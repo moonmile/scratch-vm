@@ -47,7 +47,83 @@ class Scratch3WebApiSample {
                             defaultValue: "100"
                         }
                     }
-                }
+                },
+
+
+                /**
+                 * Azure Functions の HttpTrigger を GET で呼び出す
+                 */
+                {
+                    opcode: 'getHttpTrigger',
+                    blockType: BlockType.REPORTER,
+                    text: 'CALL Azure Functions by GET [URL]',
+                    arguments: {
+                        URL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "http://localhost:7071/api/Function1?name=azure"
+                        }
+                    }
+                },
+                /**
+                 * Azure Functions の HttpTrigger を POST で呼び出す
+                 */
+                {
+                    opcode: 'postHttpTrigger',
+                    blockType: BlockType.REPORTER,
+                    text: 'CALL Azure Functions by POST [URL] [JSON]',
+                    arguments: {
+                        URL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "http://localhost:7071/api/Function1"
+                        },
+                        JSON: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "{ 'name': 'SCRATCH' } "
+                        },
+
+                    }
+                },
+
+                /**
+                 * JSON文字列から指定プロパティ名の値を取得
+                 */
+                {
+                    opcode: 'getValueFromJSON',
+                    blockType: BlockType.REPORTER,
+                    text: 'GET [NAME] from [JSON]',
+                    arguments: {
+                        JSON: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "{ \"name\": \"SCRATCH\" }"
+                        },
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "name"
+                        },
+                    }
+                },
+                /**
+                 * JSON文字列へ指定プロパティ名の値を設定
+                 */
+                {
+                    opcode: 'setValueIntoJSON',
+                    blockType: BlockType.REPORTER,
+                    text: 'SET [NAME] to [TEXT] into [JSON]',
+                    arguments: {
+                        JSON: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "{ \"name\": \"SCRATCH\" }"
+                        },
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "name"
+                        },
+                        TEXT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "CAT"
+                        },
+                    }
+                },
             ],
             menus: {
             }
@@ -71,6 +147,63 @@ class Scratch3WebApiSample {
             .then( res => res.text() )
             .then( body => this._result = body ) ;
         return pr ;
+    }
+
+    /**
+     * Azure Functions の HttpTrigger を GET で呼び出す
+     */
+    getHttpTrigger(args) {
+        const path = Cast.toString(args.URL);
+        var pr = fetch( path ) 
+            .then( res => res.text() )
+            .then( body => this._result = body ) ;
+        return pr ;
+    }
+    /**
+     * Azure Functions の HttpTrigger を POST で呼び出す
+     */
+    postHttpTrigger(args) {
+        const path = Cast.toString(args.URL);
+        const body = Cast.toString(args.JSON);
+        const method = "POST";
+        const headers = {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        };        
+        var pr = fetch( path, {method, headers, body} ) 
+            .then( res => res.json() )
+            .then( body => this._result = body ) ;
+        return pr ;
+    }
+
+
+    /**
+     * JSON文字列から指定プロパティ名の値を取得
+     */
+    getValueFromJSON(args) {
+        const name = Cast.toString(args.NAME);
+        const json = Cast.toString(args.JSON);
+        try {
+            var obj = JSON.parse(json);
+            return obj[ name ];
+        } catch {
+            return "";
+        }
+    }
+    /**
+     * JSON文字列から指定プロパティ名の値を取得
+     */
+    setValueIntoJSON(args) {
+        const name = Cast.toString(args.NAME);
+        const text = Cast.toString(args.TEXT);
+        const json = Cast.toString(args.JSON);
+        try {
+            var obj = JSON.parse(json) ;
+            obj[name] = text ;
+            return JSON.stringify(obj);
+        } catch {
+            return json;
+        }
     }
 }
 
